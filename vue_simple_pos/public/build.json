@@ -1,0 +1,8 @@
+{
+  "js/vue.js": [
+    "public/js/vue.js"
+  ],
+  "css/pos.css": [
+    "public/css/pos.css"
+  ]
+}

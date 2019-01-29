@@ -1,0 +1,30 @@
+<div class="item-container">
+  <div class="list-item-table pos-items-wrapper">
+    <div class="pos-items image-view-container">
+      <p v-if="noItems()">{{__("No items in cart.")}}</p>
+
+      <!------- START ITEM -------->
+      <div v-for="(qty, item_code) of cart" class="pos-item-wrapper image-view-item">
+        <div class="image-view-header">
+          <div>
+            <span class="grey list-id">
+              {{ items[item_code].item_name }}
+            </span>
+            <span class="badge badge-pill bg-warning text-light">
+              {{ qty }}
+            </span>
+          </div>
+        </div>
+        <div>
+          <img class="img-responsive" v-if="items[item_code].thumbnail" v-bind:src="items[item_code].thumbnail"
+            v-bind:alt="items[item_code].item_name">
+          <span class="price-info">
+            {{ formatCurrency(items[item_code].standard_rate) }}
+          </span>
+        </div>
+      </div>
+      <!------- END ITEM -------->
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+.DS_Store
+.vscode
+*.pyc
+*.egg-info
+*.swp
+tags
+vue_simple_pos/docs/current

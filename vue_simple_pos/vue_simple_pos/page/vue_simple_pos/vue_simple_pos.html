@@ -1,0 +1,88 @@
+<section class="pos row">
+  <div class="cart-container col-sm-5">
+    <div class="pos-cart">
+      <div class="customer-field">
+      </div>
+      <div class="cart-wrapper">
+        <div class="list-item-table">
+          <div class="list-item list-item--head">
+            <div class="list-item__content list-item__content--flex-1.5 text-muted">{{__("Item Name")}}</div>
+            <div class="list-item__content text-muted text-right">{{__("Quantity")}}</div>
+            <div class="list-item__content text-muted text-right">{{__("Rate")}}</div>
+          </div>
+          <div class="cart-items">
+
+            <!------------ START ITEM ----------->
+            <div v-for="(qty, item_code) of cart" class="list-item">
+              <div class="item-name list-item__content list-item__content--flex-1.5 ellipsis">
+                {{ items[item_code].item_name }}
+              </div>
+              <div class="quantity list-item__content text-right">
+                <div class="input-group input-group-xs">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" v-on:click="addToCart(item_code)">+</button>
+                  </span>
+
+                  <input class="form-control height-25" type="number" v-bind:value="qty">
+
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" v-on:click="removeFromCart(item_code)">-</button>
+                  </span>
+                </div>
+              </div>
+              <div class="rate list-item__content text-right">
+                {{ formatCurrency(items[item_code].standard_rate) }}
+              </div>
+            </div>
+            <!------------ END ITEM ----------->
+
+          </div>
+          <div class="grand-total">
+            <div class="list-item">
+              <div class="list-item__content text-muted">{{__("Grand Total")}}</div>
+              <div class="list-item__content list-item__content--flex-2 grand-total-value">{{ formatCurrency(total) }}</div>
+            </div>
+          </div>
+          <div class="btn-container">
+            <button v-on:click="resetCart()" class="reset-btn btn btn-default btn-lg" type="button"
+              v-bind:disabled="cartIsEmpty()">
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button>
+            <button v-on:click="makePayment()" class="pay-btn btn btn-primary btn-lg" type="button"
+              v-bind:disabled="cartIsEmpty()">{{__("Pay")}}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="item-container col-sm-7">
+    <div class="list-item-table pos-items-wrapper">
+      <div class="pos-items image-view-container">
+        <p v-if="noItems()">No Items available. Only Items of group {{item_group}} will be shown.</p>
+
+        <!------- START ITEM -------->
+        <div v-for="(item, item_code) of items" v-on:click="addToCart(item_code)" class="pos-item-wrapper image-view-item">
+          <div class="image-view-header">
+            <div>
+              <a class="grey list-id" v-bind:title="item.item_name">
+                {{ item.item_name }}
+              </a>
+              <span class="badge badge-pill bg-warning text-light">{{ cart[item_code] }}</span>
+            </div>
+          </div>
+          <div>
+            <a v-bind:title="item.item_name">
+              <img class="img-responsive" v-if="item.thumbnail" v-bind:src="item.thumbnail" v-bind:alt="item.item_name">
+              <span class="price-info">
+                {{ formatCurrency(item.standard_rate) }}
+              </span>
+            </a>
+          </div>
+        </div>
+        <!------- END ITEM -------->
+
+      </div>
+    </div>
+  </div>
+</section>

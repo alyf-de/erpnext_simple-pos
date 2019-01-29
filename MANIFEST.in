@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include vue_simple_pos *.css
+recursive-include vue_simple_pos *.csv
+recursive-include vue_simple_pos *.html
+recursive-include vue_simple_pos *.ico
+recursive-include vue_simple_pos *.js
+recursive-include vue_simple_pos *.json
+recursive-include vue_simple_pos *.md
+recursive-include vue_simple_pos *.png
+recursive-include vue_simple_pos *.py
+recursive-include vue_simple_pos *.svg
+recursive-include vue_simple_pos *.txt
+recursive-exclude vue_simple_pos *.pyc

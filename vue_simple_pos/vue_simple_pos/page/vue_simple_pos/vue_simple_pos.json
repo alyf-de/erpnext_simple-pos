@@ -1,0 +1,32 @@
+{
+  "content": null,
+  "creation": "2018-12-18 19:00:00.000000",
+  "docstatus": 0,
+  "doctype": "Page",
+  "idx": 0,
+  "modified": "2018-12-18 19:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "vue_simple_pos",
+  "name": "vue-simple-pos",
+  "owner": "Administrator",
+  "page_name": "Vue Simple POS",
+  "roles": [
+    {
+      "role": "Accounts User"
+    },
+    {
+      "role": "Accounts Manager"
+    },
+    {
+      "role": "Sales User"
+    },
+    {
+      "role": "Sales Manager"
+    }
+  ],
+  "script": null,
+  "standard": "Yes",
+  "style": null,
+  "system_page": 0,
+  "title": "Vue Simple POS"
+}
