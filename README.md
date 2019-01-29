@@ -23,7 +23,7 @@ Sponsored by [tüit](https://www.tueit.de/).
 * Menu link to POS Profile doesn't work yet
 * Product group must be set to "Stadionkarten"
 
-#### License
+### License
 
 Copyright (C) 2019  Raffael Meyer
 
