@@ -166,7 +166,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 			method: 'erpnext.stock.get_item_details.get_pos_profile',
 			args: { company: this.company },
 			callback: r => {
-				console.log('POS Profile loaded');
 				this.pos_profile = r.message;
 				resolve();
 			},
@@ -258,7 +257,7 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		// TODO: add filter for item_group
 		const args = {
 			fields: ['item_code', 'item_name', 'thumbnail', 'standard_rate'],
-			filters: { 'item_group': this.item_group, 'has_variants': 0}
+			filters: { 'item_group': this.item_group, 'has_variants': 0 }
 		};
 		return frappe.db.get_list('Item', args).then(items => {
 			if (items) {
@@ -365,7 +364,7 @@ class Payment {
 	}
 
 	set_item_overview() {
-		this.dialog.set_value('overview', '<div id="payment-items"></div>');
+		this.dialog.fields_dict.overview.$wrapper.html('<div id="payment-items"></div>');
 	}
 
 	set_primary_action() {
