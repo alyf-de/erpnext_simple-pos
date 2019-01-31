@@ -162,14 +162,17 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	get_pos_profile() {
-		return new Promise(resolve => frappe.call({
-			method: 'erpnext.stock.get_item_details.get_pos_profile',
-			args: { company: this.company },
-			callback: r => {
-				this.pos_profile = r.message;
-				resolve();
-			},
-		}));
+		const args = {
+			fields: "*",
+			filters: { 'company': this.company }
+		};
+		return frappe.db.get_list('POS Profile', args).then(profiles => {
+			if (profiles) {
+				this.pos_profile = profiles[0];
+			} else {
+				msgprint(__('Please create a POS Profile'));
+			}
+		});
 	}
 
 	set_pos_values() {
@@ -244,17 +247,17 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	prepare_menu() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item(__('POS Profile'), function() {
-			frappe.set_route('Form', 'POS Profile', this.pos_profile.pos_profile_name);
-		});
+		this.page.add_menu_item(__('POS Profile'), 
+			() => frappe
+				.set_route('Form', 'POS Profile', this.pos_profile.pos_profile_name)
+		);
 
-		this.page.add_menu_item(__('POS Settings'), function() {
-			frappe.set_route('Form', 'POS Settings');
-		});
+		this.page.add_menu_item(__('POS Settings'),
+			() => frappe.set_route('Form', 'POS Settings')
+		);
 	}
 
 	get_items() {
-		// TODO: add filter for item_group
 		const args = {
 			fields: ['item_code', 'item_name', 'thumbnail', 'standard_rate'],
 			filters: { 'item_group': this.item_group, 'has_variants': 0 }
