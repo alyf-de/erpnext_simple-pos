@@ -292,9 +292,9 @@ class Payment {
 
 		frappe.run_serially([
 			this.make(),
+			this.set_item_overview(),
 			this.set_primary_action(),
 			this.set_secondary_action(),
-			// this.set_reset_action(),
 			this.init_vue(),
 		]);
 	}
@@ -337,7 +337,6 @@ class Payment {
 				},
 			],
 		});
-		this.set_item_overview();
 	}
 
 	init_vue() {
