@@ -300,8 +300,8 @@ class Payment {
 
 	open_modal() {
 		frappe.run_serially([
-			this.dialog.show(),
-			this.init_vue(),
+			() => this.dialog.show(),
+			() => this.init_vue(),
 		]);
 	}
 
