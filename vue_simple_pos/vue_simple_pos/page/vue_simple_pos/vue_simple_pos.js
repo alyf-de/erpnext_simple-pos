@@ -295,12 +295,14 @@ class Payment {
 			this.set_item_overview(),
 			this.set_primary_action(),
 			this.set_secondary_action(),
-			this.init_vue(),
 		]);
 	}
 
 	open_modal() {
-		this.dialog.show();
+		frappe.run_serially([
+			this.dialog.show(),
+			this.init_vue(),
+		]);
 	}
 
 	make() {
