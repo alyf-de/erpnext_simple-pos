@@ -287,8 +287,18 @@ class Payment {
 		this.amount = amount;
 		this.mode_of_payment = __('Cash');
 		this.events = events;
-		this.cart = cart;
-		this.items = items;
+		this.cart = [];
+
+		for (let cart_item in cart) {
+			let list_el = {
+				code: cart_item,
+				qty: cart[cart_item],
+				name: items[cart_item].item_name,
+				rate: format_currency(items[cart_item].standard_rate, this.currency),
+				thumbnail: items[cart_item].thumbnail
+			};
+			this.cart.push(list_el);
+		}
 
 		frappe.run_serially([
 			this.make(),
@@ -299,10 +309,7 @@ class Payment {
 	}
 
 	open_modal() {
-		frappe.run_serially([
-			() => this.dialog.show(),
-			() => this.init_vue(),
-		]);
+		this.dialog.show();
 	}
 
 	make() {
@@ -341,34 +348,13 @@ class Payment {
 		});
 	}
 
-	init_vue() {
-		const me = this;
-		this.vue = new Vue({
-			el: '#payment-items',
-			data: {
-				currency: this.currency,
-				items: this.items,
-				cart: this.cart,
-			},
-			template: frappe.templates["modal"],
-			methods: {
-				formatCurrency(amount) {
-					return format_currency(amount, this.currency);
-				},
-				noItems() {
-					return $.isEmptyObject(this.items);
-				},
-				__(msg) {
-					/* Return translation of msg or msg, 
-					  if there is no translation */
-					return frappe._messages[msg] || msg;
-				}
-			}
-		});
-	}
-
 	set_item_overview() {
-		this.dialog.fields_dict.overview.$wrapper.html('<div id="payment-items"></div>');
+		const html = frappe.render_template(frappe.templates["modal"], {
+			currency: this.currency,
+			cart: this.cart,
+			no_items: frappe._("No items in cart.")
+		});
+		this.dialog.fields_dict.overview.$wrapper.html(html);
 	}
 
 	set_primary_action() {
