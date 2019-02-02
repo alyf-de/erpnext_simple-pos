@@ -1,10 +1,14 @@
 <div class="item-container">
   <div class="list-item-table pos-items-wrapper">
     <div class="pos-items image-view-container">
-      <p v-if="noItems()">{{__("No items in cart.")}}</p>
+      
+      {% if not cart %}
+      <p>{{ _("No items in cart.") }}</p>
+      {% endif %}
 
       <!------- START ITEM -------->
-      <div v-for="(qty, item_code) of cart" class="pos-item-wrapper image-view-item">
+      {% for item_code, qty in cart.items() %}
+      <div class="pos-item-wrapper image-view-item">
         <div class="image-view-header">
           <div>
             <span class="grey list-id">
@@ -16,13 +20,16 @@
           </div>
         </div>
         <div>
-          <img class="img-responsive" v-if="items[item_code].thumbnail" v-bind:src="items[item_code].thumbnail"
-            v-bind:alt="items[item_code].item_name">
+          {% if items[item_code].thumbnail %}
+          <img class="img-responsive" src="{{ items[item_code].thumbnail }}"
+            alt="{{ items[item_code].item_name }}">
+          {% endif %}
           <span class="price-info">
-            {{ formatCurrency(items[item_code].standard_rate) }}
+            {{ items[item_code].standard_rate }}
           </span>
         </div>
       </div>
+      {% endfor %}
       <!------- END ITEM -------->
 
     </div>

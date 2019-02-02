@@ -288,7 +288,13 @@ class Payment {
 		this.mode_of_payment = __('Cash');
 		this.events = events;
 		this.cart = cart;
-		this.items = items;
+		this.items = {};
+
+		// Assign items and format price
+		for (var item in items) {
+			this.items[item] = items[item];
+			this.items[item].standard_rate = format_currency(items[item].standard_rate, this.currency);
+		}
 
 		frappe.run_serially([
 			this.make(),
@@ -299,10 +305,7 @@ class Payment {
 	}
 
 	open_modal() {
-		frappe.run_serially([
-			() => this.dialog.show(),
-			() => this.init_vue(),
-		]);
+		this.dialog.show();
 	}
 
 	make() {
@@ -368,7 +371,12 @@ class Payment {
 	}
 
 	set_item_overview() {
-		this.dialog.fields_dict.overview.$wrapper.html('<div id="payment-items"></div>');
+		const html = frappe.render_template(frappe.templates["modal"], {
+			currency: this.currency,
+			items: this.items,
+			cart: this.cart,
+		});
+		this.dialog.fields_dict.overview.$wrapper.html(html);
 	}
 
 	set_primary_action() {
