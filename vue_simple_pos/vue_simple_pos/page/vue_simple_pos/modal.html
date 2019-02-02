@@ -3,34 +3,35 @@
     <div class="pos-items image-view-container">
       
       {% if not cart %}
-      <p>{{ _("No items in cart.") }}</p>
+      <p>{{ no_items }}</p>
       {% endif %}
 
+      {% for cart_item in cart %}
       <!------- START ITEM -------->
-      {% for item_code, qty in cart.items() %}
       <div class="pos-item-wrapper image-view-item">
         <div class="image-view-header">
           <div>
             <span class="grey list-id">
-              {{ items[item_code].item_name }}
+              {{ cart_item.name }}
             </span>
             <span class="badge badge-pill bg-warning text-light">
-              {{ qty }}
+              {{ cart_item.qty }}
             </span>
           </div>
         </div>
         <div>
-          {% if items[item_code].thumbnail %}
-          <img class="img-responsive" src="{{ items[item_code].thumbnail }}"
-            alt="{{ items[item_code].item_name }}">
+          {% if cart_item.thumbnail %}
+          <img class="img-responsive" 
+            src="{{ cart_item.thumbnail }}"
+            alt="{{ cart_item.name }}">
           {% endif %}
           <span class="price-info">
-            {{ items[item_code].standard_rate }}
+            {{ cart_item.rate }}
           </span>
         </div>
       </div>
-      {% endfor %}
       <!------- END ITEM -------->
+      {% endfor %}
 
     </div>
   </div>
