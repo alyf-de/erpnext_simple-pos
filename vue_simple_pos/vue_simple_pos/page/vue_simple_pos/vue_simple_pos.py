@@ -21,8 +21,9 @@ import json
 
 @frappe.whitelist()
 def submit_sales_invoice(cart, amount=0, company=''):
+    defaults = frappe.defaults.get_defaults()
+    
     if not company:
-        defaults = frappe.defaults.get_defaults()
         company = defaults.get('company')
 
     cart = json.loads(cart)
@@ -31,6 +32,7 @@ def submit_sales_invoice(cart, amount=0, company=''):
     sinv = frappe.get_doc({
         'doctype': 'Sales Invoice',
         'company': company,
+        'selling_price_list': defaults.get('selling_price_list'),
         'is_pos': 1,
         'items': items,
         'payments': [

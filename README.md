@@ -22,6 +22,7 @@ Sponsored by [tüit](https://www.tueit.de/).
 
 * Menu link to POS Profile doesn't work yet
 * Product group must be set to "Stadionkarten"
+* Uses default selling price list (you have no choice)
 
 ### License
 
