@@ -319,28 +319,6 @@ class Payment {
 			width: 800,
 			fields: [
 				{
-					fieldtype: 'Currency',
-					label: __('Paid'),
-					options: this.currency,
-					fieldname: 'amount_paid',
-					default: this.amount,
-					onchange: () => this.update_change_amount(),
-				},
-				{
-					fieldtype: 'Column Break',
-				},
-				{
-					fieldtype: 'Currency',
-					label: __('Rückgeld'),
-					options: this.currency,
-					fieldname: "change_amount",
-					default: 0,
-					read_only: 1
-				},
-				{
-					fieldtype: 'Section Break',
-				},
-				{
 					fieldtype: 'HTML',
 					fieldname: 'overview',
 				},
@@ -361,9 +339,8 @@ class Payment {
 		var me = this;
 
 		this.dialog.set_primary_action(__("Submit"), function() {
-			const amount = me.dialog.get_value('amount_paid');
 			me.dialog.hide();
-			me.events.submit_form(amount);
+			me.events.submit_form(me.amount);
 		})
 			.removeClass('btn-sm')
 			.addClass('btn-lg');
@@ -385,11 +362,5 @@ class Payment {
 			});
 
 		this.dialog.header.append(btn);
-	}
-
-	update_change_amount() {
-		let chng = this.amount - this.dialog.get_value('amount_paid');
-		const change_amount = chng > 0 ? 0 : -chng;
-		this.dialog.set_value("change_amount", change_amount);
 	}
 }
