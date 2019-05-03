@@ -161,38 +161,37 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	get_pos_settings() {
-		try {
-			// v11
-			return frappe.db.get_doc("Simple POS Settings").then(pos_settings => {
-				this.item_group = pos_settings.item_group;
-				this.display_free_items = pos_settings.display_free_items;
-				return this.get_pos_profile(pos_settings.pos_profile);
-			});
-		} catch (TypeError) {
-			// v10
-			const pos_settings = frappe.get_doc("Simple POS Settings");
-			this.item_group = pos_settings.item_group;
-			this.display_free_items = pos_settings.display_free_items;
-			return this.get_pos_profile(pos_settings.pos_profile);
-		}
+		return frappe.call({
+			method: "frappe.client.get",
+			args: {
+				doctype: "Simple POS Settings"
+			},
+			callback(r) {
+				if (r.message) {
+					var pos_settings = r.message;
+					this.item_group = pos_settings.item_group;
+					this.display_free_items = pos_settings.display_free_items;
+					return this.get_pos_profile(pos_settings.pos_profile);
+				}
+			}
+		});
 	}
 
 	get_pos_profile(pos_profile) {
-		try {
-			// v11
-			return frappe.db.get_doc('POS Profile', pos_profile).then(pos_profile => {
-				this.pos_profile = pos_profile;
-				if (pos_profile.hasOwnProperty('currency')) {
+		return frappe.call({
+			method: "frappe.client.get",
+			args: {
+				doctype: "POS Profile",
+				name: pos_profile
+			},
+			callback(r) {
+				if (r.message) {
+					var pos_profile = r.message;
+					this.pos_profile = pos_profile;
 					this.currency = pos_profile.currency;
-				} else {
-					this.currency = frappe.sys_defaults.currency;
 				}
-			});
-		} catch (TypeError) {
-			// v10
-			this.pos_profile = frappe.get_doc('POS Profile', pos_profile);
-			this.currency = this.pos_profile.currency;
-		}
+			}
+		});
 	}
 
 	submit_sales_invoice(cart, amount) {
@@ -211,26 +210,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				});
 			}
 		});
-	}
-
-	get_promopt_fields() {
-		return [{
-			fieldtype: 'Link',
-			label: __('POS Profile'),
-			options: 'POS Profile',
-			reqd: 1,
-			get_query: () => {
-				return {
-					query: 'erpnext.accounts.doctype.pos_profile.pos_profile.pos_profile_query',
-					filters: {
-						company: this.company
-					}
-				};
-			}
-		}, {
-			fieldtype: 'Check',
-			label: __('Set as default')
-		}];
 	}
 
 	setup_company() {
