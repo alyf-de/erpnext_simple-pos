@@ -253,8 +253,8 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	get_items() {
 		frappe.call({
 			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.get_items",
-			callback: (items) => {
-				this.items = JSON.parse(items);
+			callback: (response) => {
+				this.items = response.message;
 			}
 		});
 	}
