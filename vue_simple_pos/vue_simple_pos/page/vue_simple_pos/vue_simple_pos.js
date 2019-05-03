@@ -39,7 +39,9 @@ frappe.pages['vue-simple-pos'].refresh = function(wrapper) {
 
 erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	constructor(wrapper) {
-		this.wrapper = $(wrapper).find('.layout-main-section');
+		this.wrapper = $(wrapper)
+			.find('.layout-main-section')
+			.append(`<div id="app"></div>`);
 		this.page = wrapper.page;
 		this.currency = 'EUR';
 		this.items = {};
@@ -59,11 +61,8 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	make() {
 		return frappe.run_serially([
 			// () => frappe.dom.freeze(),
-			() => {
-				this.prepare_dom();
-				this.set_online_status();
-			},
-			this.init_vue(),
+			() => this.set_online_status(),
+			() => this.init_vue(),
 			// () => frappe.dom.unfreeze(),
 			() => {
 				() => this.get_pos_settings();
@@ -156,10 +155,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				}
 			}
 		});
-	}
-
-	prepare_dom() {
-		this.wrapper.append(`<div id="app"></div>`);
 	}
 
 	get_pos_settings() {
