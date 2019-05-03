@@ -80,7 +80,7 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				total: 0,
 				currency: this.currency,
 				items: this.items,
-				item_group: this.item_group,
+				item_groups: this.item_groups,
 				cart: {}
 			},
 			template: frappe.templates["vue_simple_pos"],
@@ -214,6 +214,15 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		});
 	}
 
+	get_items() {
+		frappe.call({
+			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.get_items",
+			callback: (response) => {
+				this.items = response.message;
+			}
+		});
+	}
+
 	setup_company() {
 		const num_companies = frappe.get_list('Company').length;
 
@@ -248,15 +257,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		this.page.add_menu_item(__('Settings'),
 			() => frappe.set_route('Form', 'Simple POS Settings')
 		);
-	}
-
-	get_items() {
-		frappe.call({
-			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.get_items",
-			callback: (response) => {
-				this.items = response.message;
-			}
-		});
 	}
 };
 
