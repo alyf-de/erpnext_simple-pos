@@ -15,7 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 frappe.provide('erpnext.vue_simple_pos');
 
-frappe.pages['vue-simple-pos'].on_page_load = function(wrapper) {
+frappe.pages['vue-simple-pos'].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Vue Simple POS',
@@ -31,7 +31,7 @@ frappe.pages['vue-simple-pos'].on_page_load = function(wrapper) {
 	});
 };
 
-frappe.pages['vue-simple-pos'].refresh = function(wrapper) {
+frappe.pages['vue-simple-pos'].refresh = function (wrapper) {
 	if (wrapper.vue_simple_pos) {
 		cur_frm = wrapper.vue_simple_pos.frm;
 	}
@@ -161,22 +161,38 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	get_pos_settings() {
-		return frappe.db.get_doc("Simple POS Settings").then(pos_settings => {
+		try {
+			// v11
+			return frappe.db.get_doc("Simple POS Settings").then(pos_settings => {
+				this.item_group = pos_settings.item_group;
+				this.display_free_items = pos_settings.display_free_items;
+				return this.get_pos_profile(pos_settings.pos_profile);
+			});
+		} catch (TypeError) {
+			// v10
+			const pos_settings = frappe.get_doc("Simple POS Settings");
 			this.item_group = pos_settings.item_group;
 			this.display_free_items = pos_settings.display_free_items;
 			return this.get_pos_profile(pos_settings.pos_profile);
-		});
+		}
 	}
 
 	get_pos_profile(pos_profile) {
-		return frappe.db.get_doc('POS Profile', pos_profile).then(pos_profile => {
-			this.pos_profile = pos_profile;
-			if (pos_profile.hasOwnProperty('currency')) {
-				this.currency = pos_profile.currency;
-			} else {
-				this.currency = frappe.sys_defaults.currency;
-			}
-		});
+		try {
+			// v11
+			return frappe.db.get_doc('POS Profile', pos_profile).then(pos_profile => {
+				this.pos_profile = pos_profile;
+				if (pos_profile.hasOwnProperty('currency')) {
+					this.currency = pos_profile.currency;
+				} else {
+					this.currency = frappe.sys_defaults.currency;
+				}
+			});
+		} catch (TypeError) {
+			// v10
+			this.pos_profile = frappe.get_doc('POS Profile', pos_profile);
+			this.currency = this.pos_profile.currency;
+		}
 	}
 
 	submit_sales_invoice(cart, amount) {
@@ -243,7 +259,7 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	prepare_menu() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item(__('POS Profile'), 
+		this.page.add_menu_item(__('POS Profile'),
 			() => frappe
 				.set_route('Form', 'POS Profile', this.pos_profile.name)
 		);
@@ -357,7 +373,7 @@ class Payment {
 	set_primary_action() {
 		var me = this;
 
-		this.dialog.set_primary_action(__("Submit"), function() {
+		this.dialog.set_primary_action(__("Submit"), function () {
 			const amount = me.dialog.get_value('amount_paid');
 			me.dialog.hide();
 			me.events.submit_form(amount);
@@ -376,7 +392,7 @@ class Payment {
 		const me = this;
 		const btn = $(`<button>${__('Reset')}</button>`)
 			.addClass('btn btn-default btn-lg')
-			.on('click', function() {
+			.on('click', function () {
 				me.dialog.hide();
 				me.events.make_new_cart();
 			});
