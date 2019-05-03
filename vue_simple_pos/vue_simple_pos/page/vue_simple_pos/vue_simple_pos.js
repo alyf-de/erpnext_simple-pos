@@ -170,7 +170,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 			callback(r) {
 				if (r.message) {
 					var pos_settings = r.message;
-					me.item_group = pos_settings.item_group;
 					me.display_free_items = pos_settings.display_free_items;
 					return me.get_pos_profile(pos_settings.pos_profile);
 				}
@@ -191,6 +190,7 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 					var pos_profile = r.message;
 					me.pos_profile = pos_profile;
 					me.currency = pos_profile.currency;
+					me.item_groups = pos_profile.item_groups.map(a => a.item_group);
 				}
 			}
 		});
@@ -251,15 +251,15 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	get_items() {
-		const args = {
+		let args = {
 			fields: ['item_code', 'item_name', 'thumbnail', 'standard_rate'],
-			filters: { 'item_group': this.item_group, 'has_variants': 0 }
+			filters: { item_group: ['in', this.item_groups], has_variants: 0 }
 		};
+		if (this.display_free_items === 0) {
+			args.filters.standard_rate = ['>', 0];
+		}
 		return frappe.db.get_list('Item', args).then(items => {
 			if (items) {
-				if (this.display_free_items === 0) {
-					items = items.filter(item => item.standard_rate > 0);
-				}
 				this.items = items
 					// transform [ item_map, ... ] into { item_code : item_map , ... }
 					.reduce((map, obj) => {
