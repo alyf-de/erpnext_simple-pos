@@ -15,7 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 frappe.provide('erpnext.vue_simple_pos');
 
-frappe.pages['vue-simple-pos'].on_page_load = function(wrapper) {
+frappe.pages['vue-simple-pos'].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Vue Simple POS',
@@ -31,7 +31,7 @@ frappe.pages['vue-simple-pos'].on_page_load = function(wrapper) {
 	});
 };
 
-frappe.pages['vue-simple-pos'].refresh = function(wrapper) {
+frappe.pages['vue-simple-pos'].refresh = function (wrapper) {
 	if (wrapper.vue_simple_pos) {
 		cur_frm = wrapper.vue_simple_pos.frm;
 	}
@@ -42,7 +42,7 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		this.wrapper = $(wrapper).find('.layout-main-section');
 		this.page = wrapper.page;
 		// TODO: get item_group from POS Profile
-		this.item_group = 'Stadionkarten';
+		// this.item_group = 'Stadionkarten';
 
 		const assets = [
 			'assets/erpnext/js/pos/clusterize.js',
@@ -62,10 +62,9 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				this.prepare_dom();
 				this.set_online_status();
 			},
-			() => this.get_items(),
 			() => this.setup_company(),
-			() => this.get_pos_profile(), // depends on company
-			() => this.set_pos_values(),
+			() => this.get_pos_settings(),
+			() => this.get_items(),
 			() => this.init_vue(), // depends on POS Values
 			() => this.prepare_menu(), // depends on vue
 			() => frappe.dom.unfreeze(),
@@ -161,26 +160,40 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		this.wrapper.append(`<div id="app"></div>`);
 	}
 
-	get_pos_profile() {
-		const args = {
-			fields: "*",
-			filters: { 'company': this.company }
-		};
-		return frappe.db.get_list('POS Profile', args).then(profiles => {
-			if (profiles) {
-				this.pos_profile = profiles[0];
-			} else {
-				msgprint(__('Please create a POS Profile'));
+	get_pos_settings() {
+		const me = this;
+		return frappe.call({
+			method: "frappe.client.get",
+			args: {
+				doctype: "Simple POS Settings"
+			},
+			callback(r) {
+				if (r.message) {
+					var pos_settings = r.message;
+					me.item_group = pos_settings.item_group;
+					me.display_free_items = pos_settings.display_free_items;
+					return me.get_pos_profile(pos_settings.pos_profile);
+				}
 			}
 		});
 	}
 
-	set_pos_values() {
-		if (this.pos_profile) {
-			this.currency = this.pos_profile.currency;
-		} else {
-			this.currency = frappe.sys_defaults.currency;
-		}
+	get_pos_profile(pos_profile) {
+		const me = this;
+		return frappe.call({
+			method: "frappe.client.get",
+			args: {
+				doctype: "POS Profile",
+				name: pos_profile
+			},
+			callback(r) {
+				if (r.message) {
+					var pos_profile = r.message;
+					me.pos_profile = pos_profile;
+					me.currency = pos_profile.currency;
+				}
+			}
+		});
 	}
 
 	submit_sales_invoice(cart, amount) {
@@ -199,26 +212,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				});
 			}
 		});
-	}
-
-	get_promopt_fields() {
-		return [{
-			fieldtype: 'Link',
-			label: __('POS Profile'),
-			options: 'POS Profile',
-			reqd: 1,
-			get_query: () => {
-				return {
-					query: 'erpnext.accounts.doctype.pos_profile.pos_profile.pos_profile_query',
-					filters: {
-						company: this.company
-					}
-				};
-			}
-		}, {
-			fieldtype: 'Check',
-			label: __('Set as default')
-		}];
 	}
 
 	setup_company() {
@@ -247,13 +240,13 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	prepare_menu() {
 		this.page.clear_menu();
 
-		this.page.add_menu_item(__('POS Profile'), 
+		this.page.add_menu_item(__('POS Profile'),
 			() => frappe
-				.set_route('Form', 'POS Profile', this.pos_profile.pos_profile_name)
+				.set_route('Form', 'POS Profile', this.pos_profile.name)
 		);
 
-		this.page.add_menu_item(__('POS Settings'),
-			() => frappe.set_route('Form', 'POS Settings')
+		this.page.add_menu_item(__('Settings'),
+			() => frappe.set_route('Form', 'Simple POS Settings')
 		);
 	}
 
@@ -264,9 +257,10 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		};
 		return frappe.db.get_list('Item', args).then(items => {
 			if (items) {
+				if (this.display_free_items === 0) {
+					items = items.filter(item => item.standard_rate > 0);
+				}
 				this.items = items
-					// show item only if it costs something 
-					.filter(item => item.standard_rate > 0)
 					// transform [ item_map, ... ] into { item_code : item_map , ... }
 					.reduce((map, obj) => {
 						map[obj.item_code] = obj;
@@ -356,7 +350,7 @@ class Payment {
 		const me = this;
 		const btn = $(`<button>${__('Reset')}</button>`)
 			.addClass('btn btn-default btn-lg')
-			.on('click', function() {
+			.on('click', function () {
 				me.dialog.hide();
 				me.events.make_new_cart();
 			});
