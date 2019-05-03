@@ -62,12 +62,12 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		return frappe.run_serially([
 			// () => frappe.dom.freeze(),
 			() => this.set_online_status(),
-			() => this.init_vue(),
 			// () => frappe.dom.unfreeze(),
 			() => {
 				() => this.get_pos_settings();
 				() => this.get_items();
 			},
+			() => this.init_vue(),
 			() => this.prepare_menu(),
 			() => this.page.set_title(__('Simple Point of Sale')),
 		]);
