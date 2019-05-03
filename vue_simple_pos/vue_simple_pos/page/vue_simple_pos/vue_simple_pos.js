@@ -62,12 +62,13 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				this.prepare_dom();
 				this.set_online_status();
 			},
-			() => this.setup_company(),
-			() => this.get_pos_settings(),
-			() => this.get_items(),
-			() => this.init_vue(), // depends on POS Values
-			() => this.prepare_menu(), // depends on vue
+			() => this.init_vue(),
+			() => {
+				() => this.get_pos_settings();
+				() => this.get_items();
+			},
 			() => frappe.dom.unfreeze(),
+			() => this.prepare_menu(),
 			() => this.page.set_title(__('Simple Point of Sale')),
 		]);
 	}
@@ -78,9 +79,9 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 			el: '#app',
 			data: {
 				total: 0,
-				currency: this.currency,
-				items: this.items,
-				item_groups: this.item_groups,
+				currency: 'EUR',
+				items: [],
+				item_groups: ['Stadionkarten'],
 				cart: {}
 			},
 			template: frappe.templates["vue_simple_pos"],
@@ -189,8 +190,8 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				if (r.message) {
 					var pos_profile = r.message;
 					me.pos_profile = pos_profile;
-					me.currency = pos_profile.currency;
-					me.item_groups = pos_profile.item_groups.map(a => a.item_group);
+					me.vue.currency = pos_profile.currency;
+					me.vue.item_groups = pos_profile.item_groups.map(a => a.item_group);
 				}
 			}
 		});
@@ -200,7 +201,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		frappe.call({
 			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.submit_sales_invoice",
 			args: {
-				company: this.company || frappe.sys_defaults.company,
 				cart: cart || {},
 				amount: amount || 0,
 			},
@@ -218,31 +218,8 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		frappe.call({
 			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.get_items",
 			callback: (response) => {
-				this.items = response.message;
+				this.vue.items = response.message;
 			}
-		});
-	}
-
-	setup_company() {
-		const num_companies = frappe.get_list('Company').length;
-
-		if (num_companies == 1) {
-			this.company = frappe.sys_defaults.company;
-			return;
-		}
-
-		return new Promise(resolve => {
-			frappe.prompt({
-				fieldname: "company",
-				options: "Company",
-				default: frappe.sys_defaults.company,
-				fieldtype: "Link",
-				label: __("Select Company"),
-				reqd: 1
-			}, (data) => {
-				this.company = data.company;
-				resolve(this.company);
-			}, __("Select Company"));
 		});
 	}
 
