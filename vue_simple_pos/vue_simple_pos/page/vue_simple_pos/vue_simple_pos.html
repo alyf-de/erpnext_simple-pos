@@ -59,7 +59,7 @@
   <div class="item-container col-sm-7">
     <div class="list-item-table pos-items-wrapper">
       <div class="pos-items image-view-container">
-        <p v-if="noItems()">No Items available. Only Items of group {{item_groups}} will be shown.</p>
+        <p v-if="noItems()">No Items available.</p>
 
         <!------- START ITEM -------->
         <div v-for="(item, item_code) of items" v-on:click="addToCart(item_code)" class="pos-item-wrapper image-view-item">

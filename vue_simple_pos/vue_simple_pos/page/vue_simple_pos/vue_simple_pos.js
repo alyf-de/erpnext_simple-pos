@@ -41,8 +41,9 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper).find('.layout-main-section');
 		this.page = wrapper.page;
-		// TODO: get item_group from POS Profile
-		// this.item_group = 'Stadionkarten';
+		this.currency = 'EUR';
+		this.items = {};
+		this.item_groups = [];
 
 		const assets = [
 			'assets/erpnext/js/pos/clusterize.js',
@@ -57,17 +58,17 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 
 	make() {
 		return frappe.run_serially([
-			() => frappe.dom.freeze(),
+			// () => frappe.dom.freeze(),
 			() => {
 				this.prepare_dom();
 				this.set_online_status();
 			},
-			() => this.init_vue(),
+			this.init_vue(),
+			// () => frappe.dom.unfreeze(),
 			() => {
 				() => this.get_pos_settings();
 				() => this.get_items();
 			},
-			() => frappe.dom.unfreeze(),
 			() => this.prepare_menu(),
 			() => this.page.set_title(__('Simple Point of Sale')),
 		]);
@@ -79,9 +80,9 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 			el: '#app',
 			data: {
 				total: 0,
-				currency: 'EUR',
-				items: [],
-				item_groups: ['Stadionkarten'],
+				currency: this.currency,
+				items: this.items,
+				item_groups: this.item_groups,
 				cart: {}
 			},
 			template: frappe.templates["vue_simple_pos"],
@@ -108,8 +109,8 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 						currency: this.currency,
 						events: {
 							submit_form: (amount) => {
-								me.submit_sales_invoice(this.cart, amount);
-								this.resetCart();
+								me.submit_sales_invoice(this.cart, amount)
+									.then(() => this.resetCart());
 							},
 							make_new_cart: () => {
 								this.resetCart();
@@ -190,15 +191,15 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				if (r.message) {
 					var pos_profile = r.message;
 					me.pos_profile = pos_profile;
-					me.vue.currency = pos_profile.currency;
-					me.vue.item_groups = pos_profile.item_groups.map(a => a.item_group);
+					me.currency = pos_profile.currency;
+					me.item_groups = pos_profile.item_groups.map(a => a.item_group);
 				}
 			}
 		});
 	}
 
 	submit_sales_invoice(cart, amount) {
-		frappe.call({
+		return frappe.call({
 			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.submit_sales_invoice",
 			args: {
 				cart: cart || {},
@@ -215,10 +216,11 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	get_items() {
-		frappe.call({
+		const me = this;
+		return frappe.call({
 			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.get_items",
 			callback: (response) => {
-				this.vue.items = response.message;
+				me.items = response.message;
 			}
 		});
 	}
