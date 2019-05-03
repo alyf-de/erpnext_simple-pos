@@ -15,7 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 frappe.provide('erpnext.vue_simple_pos');
 
-frappe.pages['vue-simple-pos'].on_page_load = function (wrapper) {
+frappe.pages['vue-simple-pos'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Vue Simple POS',
@@ -31,7 +31,7 @@ frappe.pages['vue-simple-pos'].on_page_load = function (wrapper) {
 	});
 };
 
-frappe.pages['vue-simple-pos'].refresh = function (wrapper) {
+frappe.pages['vue-simple-pos'].refresh = function(wrapper) {
 	if (wrapper.vue_simple_pos) {
 		cur_frm = wrapper.vue_simple_pos.frm;
 	}
@@ -39,10 +39,13 @@ frappe.pages['vue-simple-pos'].refresh = function (wrapper) {
 
 erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	constructor(wrapper) {
-		this.wrapper = $(wrapper).find('.layout-main-section');
+		this.wrapper = $(wrapper)
+			.find('.layout-main-section')
+			.append(`<div id="app"></div>`);
 		this.page = wrapper.page;
-		// TODO: get item_group from POS Profile
-		// this.item_group = 'Stadionkarten';
+		this.currency = 'EUR';
+		this.items = {};
+		this.item_groups = [];
 
 		const assets = [
 			'assets/erpnext/js/pos/clusterize.js',
@@ -57,17 +60,11 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 
 	make() {
 		return frappe.run_serially([
-			() => frappe.dom.freeze(),
-			() => {
-				this.prepare_dom();
-				this.set_online_status();
-			},
-			() => this.setup_company(),
+			() => this.set_online_status(),
 			() => this.get_pos_settings(),
 			() => this.get_items(),
-			() => this.init_vue(), // depends on POS Values
-			() => this.prepare_menu(), // depends on vue
-			() => frappe.dom.unfreeze(),
+			() => this.init_vue(),
+			() => this.prepare_menu(),
 			() => this.page.set_title(__('Simple Point of Sale')),
 		]);
 	}
@@ -80,7 +77,7 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 				total: 0,
 				currency: this.currency,
 				items: this.items,
-				item_group: this.item_group,
+				item_groups: this.item_groups,
 				cart: {}
 			},
 			template: frappe.templates["vue_simple_pos"],
@@ -107,8 +104,8 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 						currency: this.currency,
 						events: {
 							submit_form: (amount) => {
-								me.submit_sales_invoice(this.cart, amount);
-								this.resetCart();
+								me.submit_sales_invoice(this.cart, amount)
+									.then(() => this.resetCart());
 							},
 							make_new_cart: () => {
 								this.resetCart();
@@ -156,10 +153,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		});
 	}
 
-	prepare_dom() {
-		this.wrapper.append(`<div id="app"></div>`);
-	}
-
 	get_pos_settings() {
 		const me = this;
 		return frappe.call({
@@ -197,10 +190,9 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	submit_sales_invoice(cart, amount) {
-		frappe.call({
+		return frappe.call({
 			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.submit_sales_invoice",
 			args: {
-				company: this.company || frappe.sys_defaults.company,
 				cart: cart || {},
 				amount: amount || 0,
 			},
@@ -214,26 +206,13 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		});
 	}
 
-	setup_company() {
-		const num_companies = frappe.get_list('Company').length;
-
-		if (num_companies == 1) {
-			this.company = frappe.sys_defaults.company;
-			return;
-		}
-
-		return new Promise(resolve => {
-			frappe.prompt({
-				fieldname: "company",
-				options: "Company",
-				default: frappe.sys_defaults.company,
-				fieldtype: "Link",
-				label: __("Select Company"),
-				reqd: 1
-			}, (data) => {
-				this.company = data.company;
-				resolve(this.company);
-			}, __("Select Company"));
+	get_items() {
+		const me = this;
+		return frappe.call({
+			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.get_items",
+			callback: (response) => {
+				me.items = response.message;
+			}
 		});
 	}
 
@@ -248,28 +227,6 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 		this.page.add_menu_item(__('Settings'),
 			() => frappe.set_route('Form', 'Simple POS Settings')
 		);
-	}
-
-	get_items() {
-		let args = {
-			fields: ['item_code', 'item_name', 'thumbnail', 'standard_rate'],
-			filters: { item_group: ['in', this.item_groups], has_variants: 0 }
-		};
-		if (this.display_free_items === 0) {
-			args.filters.standard_rate = ['>', 0];
-		}
-		return frappe.db.get_list('Item', args).then(items => {
-			if (items) {
-				this.items = items
-					// transform [ item_map, ... ] into { item_code : item_map , ... }
-					.reduce((map, obj) => {
-						map[obj.item_code] = obj;
-						return map;
-					}, {});
-			} else {
-				this.items = {};
-			}
-		});
 	}
 };
 
@@ -350,7 +307,7 @@ class Payment {
 		const me = this;
 		const btn = $(`<button>${__('Reset')}</button>`)
 			.addClass('btn btn-default btn-lg')
-			.on('click', function () {
+			.on('click', function() {
 				me.dialog.hide();
 				me.events.make_new_cart();
 			});
