@@ -161,6 +161,7 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	get_pos_settings() {
+		const me = this;
 		return frappe.call({
 			method: "frappe.client.get",
 			args: {
@@ -169,15 +170,16 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 			callback(r) {
 				if (r.message) {
 					var pos_settings = r.message;
-					this.item_group = pos_settings.item_group;
-					this.display_free_items = pos_settings.display_free_items;
-					return this.get_pos_profile(pos_settings.pos_profile);
+					me.item_group = pos_settings.item_group;
+					me.display_free_items = pos_settings.display_free_items;
+					return me.get_pos_profile(pos_settings.pos_profile);
 				}
 			}
 		});
 	}
 
 	get_pos_profile(pos_profile) {
+		const me = this;
 		return frappe.call({
 			method: "frappe.client.get",
 			args: {
@@ -187,8 +189,8 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 			callback(r) {
 				if (r.message) {
 					var pos_profile = r.message;
-					this.pos_profile = pos_profile;
-					this.currency = pos_profile.currency;
+					me.pos_profile = pos_profile;
+					me.currency = pos_profile.currency;
 				}
 			}
 		});
