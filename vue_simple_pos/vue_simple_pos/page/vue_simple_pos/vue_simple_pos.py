@@ -59,3 +59,21 @@ def submit_sales_invoice(cart, amount=0, company=''):
         frappe.log_error(frappe.get_traceback())
 
     return sinv.name
+
+@frappe.whitelist()
+def get_items():
+    settings = frappe.get_doc('Simple POS Settings')
+    pos_profile = frappe.get_doc('POS Profile', settings.get('pos_profile'))
+    item_groups = [ig.item_group for ig in pos_profile.item_groups]
+
+    fields = ['item_code', 'item_name', 'thumbnail', 'standard_rate']
+    filters = {
+        'item_group': ['in', item_groups], 
+        'has_variants': 0 
+    }
+
+    if settings.display_free_items:
+        filters['standard_rate'] = ['>', 0]
+
+    items = frappe.get_list('Item', filters=filters, fields=fields)
+    return {item.item_code : item for item in items}

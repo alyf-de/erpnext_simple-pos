@@ -15,7 +15,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 frappe.provide('erpnext.vue_simple_pos');
 
-frappe.pages['vue-simple-pos'].on_page_load = function (wrapper) {
+frappe.pages['vue-simple-pos'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Vue Simple POS',
@@ -31,7 +31,7 @@ frappe.pages['vue-simple-pos'].on_page_load = function (wrapper) {
 	});
 };
 
-frappe.pages['vue-simple-pos'].refresh = function (wrapper) {
+frappe.pages['vue-simple-pos'].refresh = function(wrapper) {
 	if (wrapper.vue_simple_pos) {
 		cur_frm = wrapper.vue_simple_pos.frm;
 	}
@@ -251,23 +251,10 @@ erpnext['vue_simple_pos'].PointOfSale = class PointOfSale {
 	}
 
 	get_items() {
-		let args = {
-			fields: ['item_code', 'item_name', 'thumbnail', 'standard_rate'],
-			filters: { item_group: ['in', this.item_groups], has_variants: 0 }
-		};
-		if (this.display_free_items === 0) {
-			args.filters.standard_rate = ['>', 0];
-		}
-		return frappe.db.get_list('Item', args).then(items => {
-			if (items) {
-				this.items = items
-					// transform [ item_map, ... ] into { item_code : item_map , ... }
-					.reduce((map, obj) => {
-						map[obj.item_code] = obj;
-						return map;
-					}, {});
-			} else {
-				this.items = {};
+		frappe.call({
+			method: "vue_simple_pos.vue_simple_pos.page.vue_simple_pos.vue_simple_pos.get_items",
+			callback: (items) => {
+				this.items = JSON.parse(items);
 			}
 		});
 	}
@@ -354,7 +341,7 @@ class Payment {
 	set_primary_action() {
 		var me = this;
 
-		this.dialog.set_primary_action(__("Submit"), function () {
+		this.dialog.set_primary_action(__("Submit"), function() {
 			const amount = me.dialog.get_value('amount_paid');
 			me.dialog.hide();
 			me.events.submit_form(amount);
@@ -373,7 +360,7 @@ class Payment {
 		const me = this;
 		const btn = $(`<button>${__('Reset')}</button>`)
 			.addClass('btn btn-default btn-lg')
-			.on('click', function () {
+			.on('click', function() {
 				me.dialog.hide();
 				me.events.make_new_cart();
 			});
